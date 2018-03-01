@@ -1,0 +1,161 @@
+<html>
+	<head>
+		<title>TERMES Visilization</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src="js/TrackballControls.js"></script>
+		<script type="text/javascript">
+		var container, interval,controls,
+		camera, scene, renderer,
+		projector,agent,agentwireframe,
+		mouse3D, isMouseDown = false, onMouseDownPosition;
+
+			init();
+			animate();
+
+			function init(){
+				//projector = new THREE.Projector();
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.x = 400;
+				camera.position.z = 200;
+
+				controls = new THREE.TrackballControls( camera );
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+				controls.noZoom = false;
+				controls.noPan = false;
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+				controls.keys = [ 65, 83, 68 ];
+				controls.addEventListener( 'change', render );
+				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xffffff );
+				onMouseDownPosition = new THREE.Vector2();
+
+				var gridHelper = new THREE.GridHelper( 700, 14, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				gridHelper.position.y = - 150;
+				gridHelper.position.x = - 150;
+				scene.add( gridHelper );
+
+
+				// var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+				// var geometrytemp = new THREE.Geometry();
+				// geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -200, gridHelper.position.z) );
+				// geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -150, gridHelper.position.z) );
+				// var line = new THREE.Line( geometrytemp, material );
+				// scene.add(line);
+
+				renderACube(-150,-125,-150);
+				var agentPos = calculateTopLeftCorner(gridHelper.position,14);
+				renderRobot(agentPos.x,agentPos.y,agentPos.z);
+				console.log(agentPos.x+ " "+agentPos.y+" "+ agentPos.z);
+
+				camera.lookAt( scene.position );
+				render();
+			}
+
+			function calculateTopLeftCorner(position,size){
+				size =size/2;
+				size -=0.5;
+				var posX= position.x -size*50;
+				var posZ= position.z +size*50;
+				var posY = position.y+25;
+				return new THREE.Vector3(posX,posY,posZ);
+			}
+
+			function renderACube(xPos,yPos,zPos){
+				var geometry = new THREE.BoxGeometry(50,50,50);
+				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+				var cube = new THREE.Mesh( geometry, material );
+				cube.position.x=xPos;
+				cube.position.y=yPos;
+				cube.position.z=zPos;
+
+				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				var wireframe = new THREE.LineSegments( geo, mat );
+				wireframe.position.x=xPos;
+				wireframe.position.y=yPos;
+				wireframe.position.z=zPos;
+				scene.add( wireframe );
+				scene.add(cube);
+			}
+
+			function renderRobot(xPos,yPos,zPos){
+				var geometry = new THREE.BoxGeometry(50,50,50);
+				var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
+				agent = new THREE.Mesh( geometry, material );
+				agent.position.x=xPos;
+				agent.position.y=yPos;
+				agent.position.z=zPos;
+
+				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				agentwireframe = new THREE.LineSegments( geo, mat );
+				agentwireframe.position.x=xPos;
+				agentwireframe.position.y=yPos;
+				agentwireframe.position.z=zPos;
+				scene.add( agentwireframe );
+				scene.add(agent);
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+			}
+			function animate() {
+				requestAnimationFrame( animate );
+				controls.update();
+			}
+			function moveOneGridRight(direction){
+				if(direction >0){
+					agent.translateZ( -50 );
+					agentwireframe.translateZ( -50 );
+				}
+				else{
+					agent.translateZ( 50 );
+					agentwireframe.translateZ( 50 );
+				}
+				render();
+			}
+			function moveOneGridUp(direction){
+				if(direction >0){
+					agent.translateX( -50 );
+					agentwireframe.translateX( -50 );
+				}
+				else{
+					agent.translateX( 50 );
+					agentwireframe.translateX( 50 );
+				}
+				render();
+			}
+			function onDocumentKeyDown( event ) {
+				switch( event.keyCode ) {
+					case 39: moveOneGridRight(1); //Right Arrow
+					break;
+					case 37: moveOneGridRight( -1 );//Left Arrow
+					break;
+					case 38:moveOneGridUp(1);//up Arrow
+					break;
+					case 40:moveOneGridUp(-1);//down Arrow
+					break;
+				}
+			}
+
+		</script>
+	</body>
+</html>
