@@ -7,16 +7,37 @@
 		</style>
 	</head>
 	<body>
+		<tr>
+    <td>Select a File to Load:</td>
+    <td><input type="file" id="fileToLoad"></td>
+    <td><button onclick="loadFileAsText()">Load Selected File</button><td>
+</tr>
 		<script src="js/three.js"></script>
 		<script src="js/TrackballControls.js"></script>
 		<script type="text/javascript">
-		var container, interval,controls,
-		camera, scene, renderer,
-		projector,agent,agentwireframe,
-		mouse3D, isMouseDown = false, onMouseDownPosition;
+			var container, interval,controls,
+			camera, scene, renderer,
+			projector,agent,agentwireframe,
+			mouse3D, isMouseDown = false, onMouseDownPosition;
 
-			init();
-			animate();
+			function loadFileAsText(){
+				  var fileToLoad = document.getElementById("fileToLoad").files[0];
+
+				  var fileReader = new FileReader();
+				  fileReader.onload = function(fileLoadedEvent){
+				      var textFromFileLoaded = fileLoadedEvent.target.result;
+				      document.getElementById("inputTextToSave").value = textFromFileLoaded;
+				  };
+
+				 fileReader.readAsText(fileToLoad, "UTF-8");
+				 alert(fileReader);
+
+				init();
+	  			animate();
+			  }
+
+
+
 
 			function init(){
 				//projector = new THREE.Projector();
@@ -46,7 +67,7 @@
 				scene.background = new THREE.Color( 0xffffff );
 				onMouseDownPosition = new THREE.Vector2();
 
-				var gridHelper = new THREE.GridHelper( 700, 14, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				var gridHelper = new THREE.GridHelper( 750, 15, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
 				gridHelper.position.y = - 150;
 				gridHelper.position.x = - 150;
 				scene.add( gridHelper );
@@ -62,8 +83,6 @@
 				renderACube(-150,-125,-150);
 				var agentPos = calculateTopLeftCorner(gridHelper.position,14);
 				renderRobot(agentPos.x,agentPos.y,agentPos.z);
-				console.log(agentPos.x+ " "+agentPos.y+" "+ agentPos.z);
-
 				camera.lookAt( scene.position );
 				render();
 			}
@@ -96,18 +115,21 @@
 			}
 
 			function renderRobot(xPos,yPos,zPos){
-				var geometry = new THREE.BoxGeometry(50,50,50);
-				var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
+				var geometry = new THREE.BoxGeometry(50,20,50);
+				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
+				var texture = new THREE.TextureLoader().load( 'truck.bmp' );
+				var material = new THREE.MeshBasicMaterial( { map: texture } );
 				agent = new THREE.Mesh( geometry, material );
 				agent.position.x=xPos;
-				agent.position.y=yPos;
+				agent.position.y=yPos-15;
 				agent.position.z=zPos;
+
 
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
 				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
 				agentwireframe = new THREE.LineSegments( geo, mat );
 				agentwireframe.position.x=xPos;
-				agentwireframe.position.y=yPos;
+				agentwireframe.position.y=yPos-15;
 				agentwireframe.position.z=zPos;
 				scene.add( agentwireframe );
 				scene.add(agent);
