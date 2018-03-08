@@ -18,19 +18,21 @@
 			var container, interval,controls,
 			camera, scene, renderer,
 			projector,agent,agentwireframe,
-			mouse3D, isMouseDown = false, onMouseDownPosition;
+			mouse3D, isMouseDown = false, onMouseDownPosition,
+			grid_size=15, pickedBlock=null,pickedBlockFrame=null,
+			direction=2;//up is 0, right is 1, down 2, left 3
 
 			function loadFileAsText(){
-				  var fileToLoad = document.getElementById("fileToLoad").files[0];
-
-				  var fileReader = new FileReader();
-				  fileReader.onload = function(fileLoadedEvent){
-				      var textFromFileLoaded = fileLoadedEvent.target.result;
-				      document.getElementById("inputTextToSave").value = textFromFileLoaded;
-				  };
-
-				 fileReader.readAsText(fileToLoad, "UTF-8");
-				 alert(fileReader);
+				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
+				 //
+				 //  var fileReader = new FileReader();
+				 //  fileReader.onload = function(fileLoadedEvent){
+				 //      var textFromFileLoaded = fileLoadedEvent.target.result;
+				 //      document.getElementById("inputTextToSave").value = textFromFileLoaded;
+				 //  };
+				 //
+				 // fileReader.readAsText(fileToLoad, "UTF-8");
+				 // alert(fileReader);
 
 				init();
 	  			animate();
@@ -67,7 +69,7 @@
 				scene.background = new THREE.Color( 0xffffff );
 				onMouseDownPosition = new THREE.Vector2();
 
-				var gridHelper = new THREE.GridHelper( 750, 15, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				var gridHelper = new THREE.GridHelper( 750, grid_size, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
 				gridHelper.position.y = - 150;
 				gridHelper.position.x = - 150;
 				scene.add( gridHelper );
@@ -81,8 +83,9 @@
 				// scene.add(line);
 
 				renderACube(-150,-125,-150);
-				var agentPos = calculateTopLeftCorner(gridHelper.position,14);
+				var agentPos = calculateTopLeftCorner(gridHelper.position,grid_size);
 				renderRobot(agentPos.x,agentPos.y,agentPos.z);
+				pickACube();
 				camera.lookAt( scene.position );
 				render();
 			}
@@ -117,9 +120,16 @@
 			function renderRobot(xPos,yPos,zPos){
 				var geometry = new THREE.BoxGeometry(50,20,50);
 				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
-				var texture = new THREE.TextureLoader().load( 'truck.bmp' );
-				var material = new THREE.MeshBasicMaterial( { map: texture } );
-				agent = new THREE.Mesh( geometry, material );
+
+				var faceMaterials = [ new THREE.MeshBasicMaterial( {color: 0x00ffff} )];
+				for(var i=1;i<geometry.faces.length;++i){
+					faceMaterials.push(new THREE.MeshBasicMaterial( {color: 0x000000} ));
+				}
+				agent  = new THREE.Mesh( geometry, faceMaterials );
+
+				//var texture = new THREE.TextureLoader().load( 'truck.bmp' );
+				//var material = new THREE.MeshBasicMaterial( { map: texture } );
+				//agent = new THREE.Mesh( geometry, material );
 				agent.position.x=xPos;
 				agent.position.y=yPos-15;
 				agent.position.z=zPos;
@@ -135,6 +145,26 @@
 				scene.add(agent);
 			}
 
+			function pickACube(){
+				var yPos= agent.position.y+35;
+				var xPos = agent.position.x;
+				var zPos= agent.position.z;
+				var geometry = new THREE.BoxGeometry(50,50,50);
+				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+				pickedBlock = new THREE.Mesh( geometry, material );
+				pickedBlock.position.x=xPos;
+				pickedBlock.position.y=yPos;
+				pickedBlock.position.z=zPos;
+				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				pickedBlockFrame = new THREE.LineSegments( geo, mat );
+				pickedBlockFrame.position.x=xPos;
+				pickedBlockFrame.position.y=yPos;
+				pickedBlockFrame.position.z=zPos;
+				scene.add( pickedBlockFrame );
+				scene.add(pickedBlock);
+			}
+
 			function render() {
 
 				renderer.render( scene, camera );
@@ -147,10 +177,18 @@
 				if(direction >0){
 					agent.translateZ( -50 );
 					agentwireframe.translateZ( -50 );
+					if(pickedBlock!=null&&pickedBlockFrame!=null){
+						pickedBlock.translateZ(-50);
+						pickedBlockFrame.translateZ(-50);
+					}
 				}
 				else{
 					agent.translateZ( 50 );
 					agentwireframe.translateZ( 50 );
+					if(pickedBlock!=null&&pickedBlockFrame!=null){
+						pickedBlock.translateZ(50);
+						pickedBlockFrame.translateZ(50);
+					}
 				}
 				render();
 			}
@@ -158,12 +196,38 @@
 				if(direction >0){
 					agent.translateX( -50 );
 					agentwireframe.translateX( -50 );
+					if(pickedBlock!=null&&pickedBlockFrame!=null){
+						pickedBlock.translateX(-50);
+						pickedBlockFrame.translateX(-50);
+					}
 				}
 				else{
 					agent.translateX( 50 );
 					agentwireframe.translateX( 50 );
+					if(pickedBlock!=null&&pickedBlockFrame!=null){
+						pickedBlock.translateX(50);
+						pickedBlockFrame.translateX(50);
+					}
 				}
 				render();
+			}
+			function rotate(from, to){
+				if(from == to){
+
+				}
+				else{
+					var temp = to-from;
+					if(temp<0){
+						temp =temp+3;
+					}
+					var current = 0;
+					var total = temp*Math.PI/2;
+					while(current<total){
+						current = current +total*0.05;
+						agent.rotateY(total*0.05);
+						animate();
+					}
+				}
 			}
 			function onDocumentKeyDown( event ) {
 				switch( event.keyCode ) {
@@ -174,6 +238,12 @@
 					case 38:moveOneGridUp(1);//up Arrow
 					break;
 					case 40:moveOneGridUp(-1);//down Arrow
+					break;
+					case 90:rotate(2,3);
+					break;
+					case 88: rotate(3,0);
+					break;
+					case 67: rotate(1,3);
 					break;
 				}
 			}
