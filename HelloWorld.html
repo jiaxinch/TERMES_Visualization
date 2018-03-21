@@ -242,19 +242,19 @@
 				}
 				else{
 					var temp = to-from;
-					if(temp<0){
-						temp =temp+3;
-					}
 					var current = 0;
 					var total = temp*Math.PI/2;
-					while(current<total){
-						current = current +total*0.05;
-						agent.rotateY(total*0.05);
-						render();
-						animate();
-					}
+					agent.rotateY(-total);//rotate y direction in counterclockwise direction, therefore we need it to be -1*total
+					robotDirection=to;
+					render();
+					// while(current<total){
+					// 	current = current +total*0.05;
+					// 	agent.rotateY(total*0.05);
+					// 	render();
+					// 	animate();
+					// }
 				}
-				robotDirection=to;
+
 			}
 			function putBlockDown(){
 
