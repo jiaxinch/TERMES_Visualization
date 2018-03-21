@@ -20,8 +20,8 @@
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=15, pickedBlock=null,pickedBlockFrame=null,
-			direction=2,grid,squareSize=50;//up is 0, right is 1, down 2, left 3
-			var robotLocation, heightTracker[];
+			direction=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
+			var robotLocation, heightTracker=[];
 			function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
@@ -33,7 +33,7 @@
 				 //
 				 // fileReader.readAsText(fileToLoad, "UTF-8");
 				 // alert(fileReader);
-				 robotLocation= new Vector3(0,0,0);
+				 robotLocation= new THREE.Vector3(0,0,0);
 				 init();
 				 animate();
 			  }
@@ -41,9 +41,9 @@
 
 			  function initTrackers(){
 
-				  for(int i=0;i<gridSize;++i){
+				  for(var i=0;i<gridSize;++i){
 					  heightTracker[i]=[];
-					  for(int j=0;j<gridSize;++j){
+					  for(var j=0;j<gridSize;++j){
 						  heightTracker[i][j]=0;
 					  }
 				  }
@@ -90,7 +90,7 @@
 				  // var line = new THREE.Line( geometrytemp, material );
 				  // scene.add(line);
 
-				  renderACube(-150,-125,-150);
+				  //renderACube(-150,-125,-150);
 				 // var agentPos = calculateTopLeftCorner(gridHelper.position,gridSize);
 				  renderRobot();
 				  pickACube();
@@ -98,13 +98,13 @@
 				  render();
 			}
 
-			function calculateWorldPosition(){
+			function calculateWorldPosition(position){
 				var size =gridSize/2;
 				size -=0.5;
 				var position = grid.position;
-				var posX= position.x -size*squareSize;
+				var posX= position.x +size*squareSize;
 				var posZ= position.z +size*squareSize;
-				var posY = position.y+squareSize/2;
+				var posY = position.y+robotHeight/2;
 				return new THREE.Vector3(posX,posY,posZ);
 			}
 
@@ -127,8 +127,8 @@
 			}
 
 			function renderRobot(){
-				calculateWorldPosition();
-				var geometry = new THREE.BoxGeometry(50,20,50);
+				var worldPosition = calculateWorldPosition(robotLocation);
+				var geometry = new THREE.BoxGeometry(squareSize,robotHeight,squareSize);
 				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
 
 				var faceMaterials = [ new THREE.MeshBasicMaterial( {color: 0x00ffff} )];
@@ -140,17 +140,17 @@
 				//var texture = new THREE.TextureLoader().load( 'truck.bmp' );
 				//var material = new THREE.MeshBasicMaterial( { map: texture } );
 				//agent = new THREE.Mesh( geometry, material );
-				agent.position.x=xPos;
-				agent.position.y=yPos-15;
-				agent.position.z=zPos;
+				agent.position.x=worldPosition.x;
+				agent.position.y=worldPosition.y;
+				agent.position.z=worldPosition.z;
 
 
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
 				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
 				agentwireframe = new THREE.LineSegments( geo, mat );
-				agentwireframe.position.x=xPos;
-				agentwireframe.position.y=yPos-15;
-				agentwireframe.position.z=zPos;
+				agentwireframe.position.x=worldPosition.x;
+				agentwireframe.position.y=worldPosition.y;
+				agentwireframe.position.z=worldPosition.z;
 				scene.add( agentwireframe );
 				scene.add(agent);
 			}
