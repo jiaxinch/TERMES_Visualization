@@ -20,7 +20,7 @@
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
-			direction=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
+			robotDirection=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[];
 			function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
@@ -188,38 +188,50 @@
 			}
 			function moveOneGridRight(direction){
 				if(direction >0){
-					agent.translateZ( -50 );
-					agentwireframe.translateZ( -50 );
+					if(robotDirection!=1){
+						rotate(robotDirection,1);
+					}
+					agent.position.z -=squareSize;
+					agentwireframe.position.z -=squareSize;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
-						pickedBlock.translateZ(-50);
-						pickedBlockFrame.translateZ(-50);
+						pickedBlock.position.z -=squareSize;
+						pickedBlockFrame.position.z -=squareSize;
 					}
 				}
 				else{
-					agent.translateZ( 50 );
-					agentwireframe.translateZ( 50 );
+					if(robotDirection!=3){
+						rotate(robotDirection,3);
+					}
+					agent.position.z += squareSize ;
+					agentwireframe.position.z+= squareSize;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
-						pickedBlock.translateZ(50);
-						pickedBlockFrame.translateZ(50);
+						pickedBlock.position.z += squareSize;
+						pickedBlockFrame.position.z += squareSize;
 					}
 				}
 				render();
 			}
 			function moveOneGridUp(direction){
 				if(direction >0){
-					agent.translateX( -50 );
-					agentwireframe.translateX( -50 );
+					if(robotDirection!=0){
+						rotate(robotDirection,0);
+					}
+					agent.position.x -= squareSize;
+					agentwireframe.position.x -=squareSize;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
-						pickedBlock.translateX(-50);
-						pickedBlockFrame.translateX(-50);
+						pickedBlock.position.x -=squareSize;
+						pickedBlockFrame.position.x -=squareSize;
 					}
 				}
 				else{
-					agent.translateX( 50 );
-					agentwireframe.translateX( 50 );
+					if(robotDirection!=2){
+						rotate(robotDirection,2);
+					}
+					agent.position.x += squareSize;
+					agentwireframe.position.x += squareSize;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
-						pickedBlock.translateX(50);
-						pickedBlockFrame.translateX(50);
+						pickedBlock.position.x +=squareSize;
+						pickedBlockFrame.position.x +=squareSize;
 					}
 				}
 				render();
@@ -242,6 +254,7 @@
 						animate();
 					}
 				}
+				robotDirection=to;
 			}
 			function putBlockDown(){
 
