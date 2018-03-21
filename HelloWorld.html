@@ -19,7 +19,7 @@
 			camera, scene, renderer,
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
-			gridSize=15, pickedBlock=null,pickedBlockFrame=null,
+			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			direction=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[];
 			function loadFileAsText(){
@@ -33,7 +33,7 @@
 				 //
 				 // fileReader.readAsText(fileToLoad, "UTF-8");
 				 // alert(fileReader);
-				 robotLocation= new THREE.Vector3(0,0,0);
+				 robotLocation= new THREE.Vector3(3,0,6);// x component controls the y component in the 2D grid, z component controls the x component in the 2D grid, both starting from 0
 				 init();
 				 animate();
 			  }
@@ -98,13 +98,15 @@
 				  render();
 			}
 
-			function calculateWorldPosition(position){
-				var size =gridSize/2;
+			function calculateWorldPosition(location){
+				var size = gridSize/2;
 				size -=0.5;
 				var position = grid.position;
-				var posX= position.x +size*squareSize;
+				var posX= position.x +size*squareSize;// plus to let the cube move toward us, minus to push it away
 				var posZ= position.z +size*squareSize;
-				var posY = position.y+robotHeight/2;
+				var posY = position.y;
+				posX -=location.x*squareSize;
+				posZ -= location.z*squareSize;
 				return new THREE.Vector3(posX,posY,posZ);
 			}
 
@@ -128,6 +130,7 @@
 
 			function renderRobot(){
 				var worldPosition = calculateWorldPosition(robotLocation);
+				worldPosition.y += robotHeight/2;
 				var geometry = new THREE.BoxGeometry(squareSize,robotHeight,squareSize);
 				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
 
