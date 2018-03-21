@@ -19,9 +19,9 @@
 			camera, scene, renderer,
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
-			grid_size=15, pickedBlock=null,pickedBlockFrame=null,
-			direction=2;//up is 0, right is 1, down 2, left 3
-
+			gridSize=15, pickedBlock=null,pickedBlockFrame=null,
+			direction=2,grid,squareSize=50;//up is 0, right is 1, down 2, left 3
+			var robotLocation, heightTracker[];
 			function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
@@ -33,69 +33,78 @@
 				 //
 				 // fileReader.readAsText(fileToLoad, "UTF-8");
 				 // alert(fileReader);
-
-				init();
-	  			animate();
+				 robotLocation= new Vector3(0,0,0);
+				 init();
+				 animate();
 			  }
 
 
+			  function initTrackers(){
+
+				  for(int i=0;i<gridSize;++i){
+					  heightTracker[i]=[];
+					  for(int j=0;j<gridSize;++j){
+						  heightTracker[i][j]=0;
+					  }
+				  }
+			  }
+
+			  function init(){
+				  //projector = new THREE.Projector();
+				  renderer = new THREE.WebGLRenderer();
+				  renderer.setPixelRatio( window.devicePixelRatio );
+				  renderer.setSize( window.innerWidth, window.innerHeight );
+				  document.body.appendChild( renderer.domElement );
+
+				  camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				  camera.position.x = 400;
+				  camera.position.z = 200;
+
+				  controls = new THREE.TrackballControls( camera );
+				  controls.rotateSpeed = 1.0;
+				  controls.zoomSpeed = 1.2;
+				  controls.panSpeed = 0.8;
+				  controls.noZoom = false;
+				  controls.noPan = false;
+				  controls.staticMoving = true;
+				  controls.dynamicDampingFactor = 0.3;
+				  controls.keys = [ 65, 83, 68 ];
+				  controls.addEventListener( 'change', render );
+				  document.addEventListener( 'keydown', onDocumentKeyDown, false );
 
 
-			function init(){
-				//projector = new THREE.Projector();
-				renderer = new THREE.WebGLRenderer();
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				document.body.appendChild( renderer.domElement );
+				  scene = new THREE.Scene();
+				  scene.background = new THREE.Color( 0xffffff );
+				  onMouseDownPosition = new THREE.Vector2();
 
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.x = 400;
-				camera.position.z = 200;
+				  grid = new THREE.GridHelper( gridSize*squareSize, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				  grid.position.y = - 150;
+				  grid.position.x = - 150;
+				  scene.add( grid );
+				  initTrackers();
 
-				controls = new THREE.TrackballControls( camera );
-				controls.rotateSpeed = 1.0;
-				controls.zoomSpeed = 1.2;
-				controls.panSpeed = 0.8;
-				controls.noZoom = false;
-				controls.noPan = false;
-				controls.staticMoving = true;
-				controls.dynamicDampingFactor = 0.3;
-				controls.keys = [ 65, 83, 68 ];
-				controls.addEventListener( 'change', render );
-				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+				  // var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+				  // var geometrytemp = new THREE.Geometry();
+				  // geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -200, gridHelper.position.z) );
+				  // geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -150, gridHelper.position.z) );
+				  // var line = new THREE.Line( geometrytemp, material );
+				  // scene.add(line);
 
-
-				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0xffffff );
-				onMouseDownPosition = new THREE.Vector2();
-
-				var gridHelper = new THREE.GridHelper( 750, grid_size, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
-				gridHelper.position.y = - 150;
-				gridHelper.position.x = - 150;
-				scene.add( gridHelper );
-
-
-				// var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-				// var geometrytemp = new THREE.Geometry();
-				// geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -200, gridHelper.position.z) );
-				// geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -150, gridHelper.position.z) );
-				// var line = new THREE.Line( geometrytemp, material );
-				// scene.add(line);
-
-				renderACube(-150,-125,-150);
-				var agentPos = calculateTopLeftCorner(gridHelper.position,grid_size);
-				renderRobot(agentPos.x,agentPos.y,agentPos.z);
-				pickACube();
-				camera.lookAt( scene.position );
-				render();
+				  renderACube(-150,-125,-150);
+				 // var agentPos = calculateTopLeftCorner(gridHelper.position,gridSize);
+				  renderRobot();
+				  pickACube();
+				  camera.lookAt( scene.position );
+				  render();
 			}
 
-			function calculateTopLeftCorner(position,size){
-				size =size/2;
+			function calculateWorldPosition(){
+				var size =gridSize/2;
 				size -=0.5;
-				var posX= position.x -size*50;
-				var posZ= position.z +size*50;
-				var posY = position.y+25;
+				var position = grid.position;
+				var posX= position.x -size*squareSize;
+				var posZ= position.z +size*squareSize;
+				var posY = position.y+squareSize/2;
 				return new THREE.Vector3(posX,posY,posZ);
 			}
 
@@ -117,7 +126,8 @@
 				scene.add(cube);
 			}
 
-			function renderRobot(xPos,yPos,zPos){
+			function renderRobot(){
+				calculateWorldPosition();
 				var geometry = new THREE.BoxGeometry(50,20,50);
 				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
 
@@ -225,12 +235,13 @@
 					while(current<total){
 						current = current +total*0.05;
 						agent.rotateY(total*0.05);
+						render();
 						animate();
 					}
 				}
 			}
 			function putBlockDown(){
-				
+
 			}
 			function onDocumentKeyDown( event ) {
 				switch( event.keyCode ) {
@@ -243,10 +254,6 @@
 					case 40:moveOneGridUp(-1);//down Arrow
 					break;
 					case 90:rotate(2,3);
-					break;
-					case 88: rotate(3,0);
-					break;
-					case 67: rotate(1,3);
 					break;
 				}
 			}
