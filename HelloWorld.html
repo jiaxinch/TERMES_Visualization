@@ -21,7 +21,7 @@
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			robotDirection=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
-			var robotLocation, heightTracker=[];
+			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[];
 			function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
@@ -43,8 +43,12 @@
 
 				  for(var i=0;i<gridSize;++i){
 					  heightTracker[i]=[];
+					  cubeTraker[i]=[];
+					  cubeFrameTraker[i]=[];
 					  for(var j=0;j<gridSize;++j){
 						  heightTracker[i][j]=0;
+						  cubeTraker[i][j]=[];
+						  cubeFrameTraker[i][j]=[];
 					  }
 				  }
 			  }
@@ -126,6 +130,8 @@
 				wireframe.position.z=zPos;
 				scene.add( wireframe );
 				scene.add(cube);
+				var cubeAndFrame = [cube, wireframe];
+				return cubeAndFrame;
 			}
 
 			function renderRobot(){
@@ -158,7 +164,7 @@
 				scene.add(agent);
 			}
 
-			function pickACube(){
+			function pickACube(){// this function is to pick a cube from the boarder
 				var yPos= agent.position.y+35;
 				var xPos = agent.position.x;
 				var zPos= agent.position.z;
@@ -176,12 +182,15 @@
 				pickedBlockFrame.position.z=zPos;
 				scene.add( pickedBlockFrame );
 				scene.add(pickedBlock);
+				render();
 			}
+
+
 
 			function render() {
-
 				renderer.render( scene, camera );
 			}
+
 			function animate() {
 				requestAnimationFrame( animate );
 				controls.update();
@@ -303,8 +312,6 @@
 				if(pickedBlock!=null){
 					var difX = placePosition.z-robotLocation.z;
 					var difY = placePosition.x- robotLocation.x;
-					console.log("difX"+difX);
-					console.log("difY"+difY);
 					if(difX==1&&difY==0){
 						rotate(robotDirection,1);// rotate from current direction to the right
 					}
@@ -320,19 +327,49 @@
 					else{
 						return;
 					}
-					console.log("PUT THINGS DOWN");
 					var blockWorldPosition = calculateWorldPosition(placePosition);// x is Y, and z is X
 					heightTracker[placePosition.z][placePosition.x]++;
-					console.log(heightTracker[placePosition.z][placePosition.x]);
-					renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize/2,blockWorldPosition.z);
+
+					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize/2,blockWorldPosition.z);
+					cubeTraker[placePosition.z][placePosition.x].push(tempCube[0]);
+					cubeFrameTraker[placePosition.z][placePosition.x].push(tempCube[1]);
 					scene.remove(pickedBlock);
 					scene.remove(pickedBlockFrame);
 					render();
 					pickedBlock=null;
 					pickedBlockFrame=null;
-
 				}
 			}
+
+			function putBlockUp(placePosition){
+				if(pickedBlock==null&&pickedBlockFrame==null){
+					var difX = placePosition.z-robotLocation.z;
+					var difY = placePosition.x- robotLocation.x;
+					if(difX==1&&difY==0){
+						rotate(robotDirection,1);// rotate from current direction to the right
+					}
+					else if (difX==-1&&difY==0){
+						rotate(robotDirection,3);// rotate from current direction to the left
+					}
+					else if (difX==0&&difY==1){
+						rotate(robotDirection,0);// rotate from current direction to top
+					}
+					else if(difX==0&&difY==-1){
+						rotate(robotDirection,2);// rotate from current direction to down
+					}
+					else{
+						return;
+					}
+					var cubeToDelete = cubeTraker[placePosition.z][placePosition.x].pop();
+					var frameToDelete = cubeFrameTraker[placePosition.z][placePosition.x].pop();
+					heightTracker[placePosition.z][placePosition.x]-=1;
+					scene.remove(cubeToDelete);
+					scene.remove(frameToDelete);
+					pickACube();
+					render();
+				}
+			}
+
 			function onDocumentKeyDown( event ) {
 				switch( event.keyCode ) {
 					case 39: moveOneGridRight(1); //Right Arrow
@@ -343,7 +380,9 @@
 					break;
 					case 40:moveOneGridUp(-1);//down Arrow
 					break;
-					case 90:putBlockDown(new THREE.Vector3(1,0,1));
+					case 90:putBlockDown(new THREE.Vector3(1,0,1));//z
+					break;
+					case 88:putBlockUp(new THREE.Vector3(1,0,1));//x
 					break;
 				}
 			}
