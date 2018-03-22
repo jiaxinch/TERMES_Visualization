@@ -191,25 +191,48 @@
 					if(robotDirection!=1){
 						rotate(robotDirection,1);
 					}
+					var destinationX = robotLocation.z+1;
+					var destinationY = robotLocation.x;
+					var difference=robotLocation.y-heightTracker[destinationX][destinationY];
+					if(Math.abs(difference)>1){
+						return;
+					}
 					agent.position.z -=squareSize;
 					agentwireframe.position.z -=squareSize;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.z -=squareSize;
 						pickedBlockFrame.position.z -=squareSize;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
 					}
 					robotLocation.z +=1;
+					robotLocation.y =heightTracker[destinationX][destinationY];
+
 				}
 				else{
 					if(robotDirection!=3){
 						rotate(robotDirection,3);
 					}
+					var destinationX = robotLocation.z-1;
+					var destinationY = robotLocation.x;
+					var difference=robotLocation.y-heightTracker[destinationX][destinationY];
+					if(Math.abs(difference)>1){
+						return;
+					}
 					agent.position.z += squareSize ;
 					agentwireframe.position.z+= squareSize;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.z += squareSize;
 						pickedBlockFrame.position.z += squareSize;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
 					}
 					robotLocation.z -=1;
+					robotLocation.y =heightTracker[destinationX][destinationY];
 				}
 				render();
 			}
@@ -218,25 +241,47 @@
 					if(robotDirection!=0){
 						rotate(robotDirection,0);
 					}
+					var destinationX = robotLocation.z;
+					var destinationY = robotLocation.x+1;
+					var difference=robotLocation.y-heightTracker[destinationX][destinationY];
+					if(Math.abs(difference)>1){
+						return;
+					}
 					agent.position.x -= squareSize;
 					agentwireframe.position.x -=squareSize;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.x -=squareSize;
 						pickedBlockFrame.position.x -=squareSize;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
 					}
 					robotLocation.x+=1;
+					robotLocation.y =heightTracker[destinationX][destinationY];
 				}
 				else{
 					if(robotDirection!=2){
 						rotate(robotDirection,2);
 					}
+					var destinationX = robotLocation.z;
+					var destinationY = robotLocation.x-1;
+					var difference=robotLocation.y-heightTracker[destinationX][destinationY];
+					if(Math.abs(difference)>1){
+						return;
+					}
 					agent.position.x += squareSize;
 					agentwireframe.position.x += squareSize;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.x +=squareSize;
 						pickedBlockFrame.position.x +=squareSize;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
 					}
 					robotLocation.x-=1;
+					robotLocation.y =heightTracker[destinationX][destinationY];
 				}
 				render();
 			}
@@ -251,12 +296,6 @@
 					agent.rotateY(-total);//rotate y direction in counterclockwise direction, therefore we need it to be -1*total
 					robotDirection=to;
 					render();
-					// while(current<total){
-					// 	current = current +total*0.05;
-					// 	agent.rotateY(total*0.05);
-					// 	render();
-					// 	animate();
-					// }
 				}
 
 			}
