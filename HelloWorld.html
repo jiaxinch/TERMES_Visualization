@@ -197,6 +197,7 @@
 						pickedBlock.position.z -=squareSize;
 						pickedBlockFrame.position.z -=squareSize;
 					}
+					robotLocation.z +=1;
 				}
 				else{
 					if(robotDirection!=3){
@@ -208,6 +209,7 @@
 						pickedBlock.position.z += squareSize;
 						pickedBlockFrame.position.z += squareSize;
 					}
+					robotLocation.z -=1;
 				}
 				render();
 			}
@@ -222,6 +224,7 @@
 						pickedBlock.position.x -=squareSize;
 						pickedBlockFrame.position.x -=squareSize;
 					}
+					robotLocation.x+=1;
 				}
 				else{
 					if(robotDirection!=2){
@@ -233,6 +236,7 @@
 						pickedBlock.position.x +=squareSize;
 						pickedBlockFrame.position.x +=squareSize;
 					}
+					robotLocation.x-=1;
 				}
 				render();
 			}
@@ -256,8 +260,39 @@
 				}
 
 			}
-			function putBlockDown(){
+			function putBlockDown(placePosition){
+				if(pickedBlock!=null){
+					var difX = placePosition.z-robotLocation.z;
+					var difY = placePosition.x- robotLocation.x;
+					console.log("difX"+difX);
+					console.log("difY"+difY);
+					if(difX==1&&difY==0){
+						rotate(robotDirection,1);// rotate from current direction to the right
+					}
+					else if (difX==-1&&difY==0){
+						rotate(robotDirection,3);// rotate from current direction to the left
+					}
+					else if (difX==0&&difY==1){
+						rotate(robotDirection,0);// rotate from current direction to top
+					}
+					else if(difX==0&&difY==-1){
+						rotate(robotDirection,2);// rotate from current direction to down
+					}
+					else{
+						return;
+					}
+					console.log("PUT THINGS DOWN");
+					var blockWorldPosition = calculateWorldPosition(placePosition);// x is Y, and z is X
+					heightTracker[placePosition.z][placePosition.x]++;
+					console.log(heightTracker[placePosition.z][placePosition.x]);
+					renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize/2,blockWorldPosition.z);
+					scene.remove(pickedBlock);
+					scene.remove(pickedBlockFrame);
+					render();
+					pickedBlock=null;
+					pickedBlockFrame=null;
 
+				}
 			}
 			function onDocumentKeyDown( event ) {
 				switch( event.keyCode ) {
@@ -269,7 +304,7 @@
 					break;
 					case 40:moveOneGridUp(-1);//down Arrow
 					break;
-					case 90:rotate(2,3);
+					case 90:putBlockDown(new THREE.Vector3(1,0,1));
 					break;
 				}
 			}
