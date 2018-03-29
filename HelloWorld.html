@@ -25,6 +25,9 @@
 			var addRemove=[],stepDestination=[],stepInstruction=[];
 			robotLocation= new THREE.Vector3(3,0,6);
 			var text;
+			var to,from;
+			var TimeStepTrack=1;
+			var frameSpeed=250;
 			/*function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
@@ -81,7 +84,6 @@
 
 
 			  function initTrackers(){
-
 				  for(var i=0;i<gridSize;++i){
 					  heightTracker[i]=[];
 					  cubeTraker[i]=[];
@@ -113,14 +115,14 @@
 						stepInstruction.push(tempArray);
 
 					}
-					console.log(stepInstruction);
+
 
 
 				}
 
 				function transLocVec(loc){
 					var locArray=loc.split(",");
-					return new THREE.Vector2(locArray[0],locArray[1]);
+					return new THREE.Vector2(parseInt(locArray[0]),parseInt(locArray[1]));
 				}
 
 			  function init(){
@@ -166,11 +168,102 @@
 
 				  //renderACube(-150,-125,-150);
 				 // var agentPos = calculateTopLeftCorner(gridHelper.position,gridSize);
-				  renderRobot();
-				  pickACube();
+				 /* renderRobot();
+				  pickACube();*/
 				  camera.lookAt( scene.position );
 				  render();
+					initInstructions();
 			}
+
+			function initInstructions(){
+				robotLocation= new THREE.Vector3(parseInt(stepInstruction[0][0].y),0,parseInt(stepInstruction[0][0].x));
+				renderRobot();
+				//pickACube();
+				for(var i=0;i<stepInstruction.length;i++){
+					var steps=stepInstruction[i];
+					var type=addRemove[i];
+					if(type=='a'){
+						//pickACube();
+						//render();
+						setTimeout(pickACube,frameSpeed*TimeStepTrack);
+						TimeStepTrack++;
+					}
+					for(var j=0;j<steps.length-2;j++){
+						moveFromTo(steps[j],steps[j+1]);
+					}
+					var putLoc=new THREE.Vector3(stepDestination[i].y,0,stepDestination[i].x);
+					if(type=='a'){
+						setTimeout(putBlockDown,frameSpeed*TimeStepTrack,putLoc);
+					}
+					else{
+						setTimeout(putBlockUp,frameSpeed*TimeStepTrack,putLoc);
+					}
+					TimeStepTrack++;
+					for(var j=steps.length-2;j>0;j--){
+						moveFromTo(steps[j],steps[j-1]);
+					}
+					if(type=='r'){
+						setTimeout(removePickedBlock,frameSpeed*TimeStepTrack);
+						TimeStepTrack++;
+					}
+
+
+
+
+				}
+
+			}
+
+
+			/*function sleep(miliseconds) {
+   				var currentTime = new Date().getTime();
+   				while (currentTime + miliseconds >= new Date().getTime()) {
+   				}
+			}*/
+
+			function moveFromTo(from,to){
+				var difX=to.x-from.x;
+				var difY=to.y-from.y;
+				if(difX==1&&difY==0){
+					//moveOneGridRight(1);
+					setTimeout(moveRight, TimeStepTrack*frameSpeed);
+					TimeStepTrack++;
+
+				}
+				else if(difX==-1&&difY==0){
+					//moveOneGridRight(-1);
+					setTimeout(moveLeft, TimeStepTrack*frameSpeed);
+					TimeStepTrack++;
+				}
+				else if(difX==0&&difY==1){
+					//moveOneGridUp(1);
+					setTimeout(moveUp, TimeStepTrack*frameSpeed);
+					TimeStepTrack++;
+				}
+				else if(difX==0&&difY==-1){
+					//moveOneGridUp(-1);
+					setTimeout(moveDown, TimeStepTrack*frameSpeed);
+					TimeStepTrack++;
+				}
+				else{
+					alert("invalid operation");
+				}
+				render();
+			}
+
+			function moveRight(){
+				moveOneGridRight(1);
+			}
+			function moveLeft(){
+				moveOneGridRight(-1);
+			}
+			function moveUp(){
+				moveOneGridUp(1);
+			}
+			function moveDown(){
+				moveOneGridUp(-1);
+			}
+
 
 			function calculateWorldPosition(location){
 				var size = gridSize/2;
@@ -258,6 +351,7 @@
 
 
 			function render() {
+				//requestAnimationFrame(render);
 				renderer.render( scene, camera );
 			}
 
@@ -378,7 +472,15 @@
 				}
 
 			}
+			function removePickedBlock(){
+				scene.remove(pickedBlock);
+				scene.remove(pickedBlockFrame);
+				render();
+				pickedBlock=null;
+				pickedBlockFrame=null;
+			}
 			function putBlockDown(placePosition){
+				console.log(placePosition);
 				if(pickedBlock!=null){
 					var difX = placePosition.z-robotLocation.z;
 					var difY = placePosition.x- robotLocation.x;
@@ -398,13 +500,14 @@
 						return;
 					}
 					var blockWorldPosition = calculateWorldPosition(placePosition);// x is Y, and z is X
-					heightTracker[placePosition.z][placePosition.x]++;
 
-					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize/2,blockWorldPosition.z);
+
+					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize+0.5*squareSize,blockWorldPosition.z);
 					cubeTraker[placePosition.z][placePosition.x].push(tempCube[0]);
 					cubeFrameTraker[placePosition.z][placePosition.x].push(tempCube[1]);
 					scene.remove(pickedBlock);
 					scene.remove(pickedBlockFrame);
+					heightTracker[placePosition.z][placePosition.x]++;
 					render();
 					pickedBlock=null;
 					pickedBlockFrame=null;
