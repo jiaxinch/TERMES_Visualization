@@ -10,7 +10,7 @@
 		<tr>
     <td>Select a File to Load:</td>
     <td><input type="file" id="fileToLoad"></td>
-    <td><button onclick="loadFileAsText()">Load Selected File</button><td>
+    <td><button id="upload_button">Load Selected File</button><td>
 </tr>
 		<script src="js/three.js"></script>
 		<script src="js/TrackballControls.js"></script>
@@ -22,7 +22,10 @@
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			robotDirection=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[];
-			function loadFileAsText(){
+			var addRemove=[],stepDestination=[],stepInstruction=[];
+			robotLocation= new THREE.Vector3(3,0,6);
+			var text;
+			/*function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
 				 //  var fileReader = new FileReader();
@@ -36,7 +39,45 @@
 				 robotLocation= new THREE.Vector3(3,0,6);// x component controls the y component in the 2D grid, z component controls the x component in the 2D grid, both starting from 0
 				 init();
 				 animate();
-			  }
+			 }*/
+
+			 document.getElementById("upload_button").addEventListener('click', function(evt) {
+				if (evt.target.tagName.toLowerCase() == 'button') {
+					var startByte = evt.target.getAttribute('data-startbyte');
+					var endByte = evt.target.getAttribute('data-endbyte');
+					readBlob(startByte, endByte);
+				}
+			}, false);
+
+
+		 function readBlob(opt_startByte, opt_stopByte) {
+
+				var files = document.getElementById('fileToLoad').files;
+				if (!files.length) {
+					alert('Please select a file!');
+					return;
+				}
+
+				var file = files[0];
+				var start = parseInt(opt_startByte) || 0;
+				var stop = parseInt(opt_stopByte) || file.size - 1;
+
+				var reader = new FileReader();
+
+				// If we use onloadend, we need to check the readyState.
+				reader.onloadend = function(evt) {
+					if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+					 text=evt.target.result;
+					 //console.log(text);
+					 parse();
+					 init();
+					 animate();
+					}
+				};
+
+				var blob = file.slice(start, stop + 1);
+				reader.readAsBinaryString(blob);
+			}
 
 
 			  function initTrackers(){
@@ -52,6 +93,35 @@
 					  }
 				  }
 			  }
+
+				function parse(){
+					var lines=text.split("\n");
+					var dimenstion=lines[0].split(" ");
+					gridSize=dimenstion[0];
+					//console.log(gridSize);
+					if(dimenstion[1]>dimenstion[0]){
+						gridSize=dimenstion[1];
+					}
+					for(var i=1;i<lines.length;i++){
+						var singleLine=lines[i].split(" ");
+						addRemove.push(singleLine[0]);
+						stepDestination.push(transLocVec(singleLine[1]));
+						var tempArray=[]
+						for(var j=2;j<singleLine.length;j++){
+							tempArray.push(transLocVec(singleLine[j]));
+						}
+						stepInstruction.push(tempArray);
+
+					}
+					console.log(stepInstruction);
+
+
+				}
+
+				function transLocVec(loc){
+					var locArray=loc.split(",");
+					return new THREE.Vector2(locArray[0],locArray[1]);
+				}
 
 			  function init(){
 				  //projector = new THREE.Projector();
