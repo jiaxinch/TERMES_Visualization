@@ -20,14 +20,16 @@
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
-			robotDirection=2,grid,squareSize=50, robotHeight=20;//up is 0, right is 1, down 2, left 3
+			robotDirection=2,grid,squareSize=50, robotHeight=20,squareHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[];
 			var addRemove=[],stepDestination=[],stepInstruction=[];
 			robotLocation= new THREE.Vector3(3,0,6);
 			var text;
 			var to,from;
-			var TimeStepTrack=1;
+			var offset=1000;
 			var frameSpeed=250;
+			var TimeStepTrack=offset+frameSpeed;
+
 			/*function loadFileAsText(){
 				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
 				 //
@@ -185,26 +187,26 @@
 					if(type=='a'){
 						//pickACube();
 						//render();
-						setTimeout(pickACube,frameSpeed*TimeStepTrack);
-						TimeStepTrack++;
+						setTimeout(pickACube,TimeStepTrack);
+						TimeStepTrack+=frameSpeed;
 					}
 					for(var j=0;j<steps.length-2;j++){
 						moveFromTo(steps[j],steps[j+1]);
 					}
 					var putLoc=new THREE.Vector3(stepDestination[i].y,0,stepDestination[i].x);
 					if(type=='a'){
-						setTimeout(putBlockDown,frameSpeed*TimeStepTrack,putLoc);
+						setTimeout(putBlockDown,TimeStepTrack,putLoc);
 					}
 					else{
-						setTimeout(putBlockUp,frameSpeed*TimeStepTrack,putLoc);
+						setTimeout(putBlockUp,TimeStepTrack,putLoc);
 					}
-					TimeStepTrack++;
+					TimeStepTrack+=frameSpeed;
 					for(var j=steps.length-2;j>0;j--){
 						moveFromTo(steps[j],steps[j-1]);
 					}
 					if(type=='r'){
-						setTimeout(removePickedBlock,frameSpeed*TimeStepTrack);
-						TimeStepTrack++;
+						setTimeout(removePickedBlock,TimeStepTrack);
+						TimeStepTrack+=frameSpeed;
 					}
 
 
@@ -226,24 +228,24 @@
 				var difY=to.y-from.y;
 				if(difX==1&&difY==0){
 					//moveOneGridRight(1);
-					setTimeout(moveRight, TimeStepTrack*frameSpeed);
-					TimeStepTrack++;
+					setTimeout(moveRight, TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 
 				}
 				else if(difX==-1&&difY==0){
 					//moveOneGridRight(-1);
-					setTimeout(moveLeft, TimeStepTrack*frameSpeed);
-					TimeStepTrack++;
+					setTimeout(moveLeft, TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 				}
 				else if(difX==0&&difY==1){
 					//moveOneGridUp(1);
-					setTimeout(moveUp, TimeStepTrack*frameSpeed);
-					TimeStepTrack++;
+					setTimeout(moveUp, TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 				}
 				else if(difX==0&&difY==-1){
 					//moveOneGridUp(-1);
-					setTimeout(moveDown, TimeStepTrack*frameSpeed);
-					TimeStepTrack++;
+					setTimeout(moveDown, TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 				}
 				else{
 					alert("invalid operation");
@@ -278,7 +280,7 @@
 			}
 
 			function renderACube(xPos,yPos,zPos){
-				var geometry = new THREE.BoxGeometry(50,50,50);
+				var geometry = new THREE.BoxGeometry(squareSize,squareHeight,squareSize);
 				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
 				var cube = new THREE.Mesh( geometry, material );
 				cube.position.x=xPos;
@@ -286,7 +288,7 @@
 				cube.position.z=zPos;
 
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
 				var wireframe = new THREE.LineSegments( geo, mat );
 				wireframe.position.x=xPos;
 				wireframe.position.y=yPos;
@@ -318,7 +320,7 @@
 
 
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
 				agentwireframe = new THREE.LineSegments( geo, mat );
 				agentwireframe.position.x=worldPosition.x;
 				agentwireframe.position.y=worldPosition.y;
@@ -328,17 +330,17 @@
 			}
 
 			function pickACube(){// this function is to pick a cube from the boarder
-				var yPos= agent.position.y+35;
+				var yPos= agent.position.y+robotHeight/2+squareHeight/2
 				var xPos = agent.position.x;
 				var zPos= agent.position.z;
-				var geometry = new THREE.BoxGeometry(50,50,50);
+				var geometry = new THREE.BoxGeometry(squareSize,squareHeight,squareSize);
 				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
 				pickedBlock = new THREE.Mesh( geometry, material );
 				pickedBlock.position.x=xPos;
 				pickedBlock.position.y=yPos;
 				pickedBlock.position.z=zPos;
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3 } );
+				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
 				pickedBlockFrame = new THREE.LineSegments( geo, mat );
 				pickedBlockFrame.position.x=xPos;
 				pickedBlockFrame.position.y=yPos;
@@ -372,13 +374,13 @@
 					}
 					agent.position.z -=squareSize;
 					agentwireframe.position.z -=squareSize;
-					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
-					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.z -=squareSize;
 						pickedBlockFrame.position.z -=squareSize;
-						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
-						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
 					}
 					robotLocation.z +=1;
 					robotLocation.y =heightTracker[destinationX][destinationY];
@@ -396,13 +398,13 @@
 					}
 					agent.position.z += squareSize ;
 					agentwireframe.position.z+= squareSize;
-					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
-					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.z += squareSize;
 						pickedBlockFrame.position.z += squareSize;
-						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
-						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
 					}
 					robotLocation.z -=1;
 					robotLocation.y =heightTracker[destinationX][destinationY];
@@ -422,13 +424,13 @@
 					}
 					agent.position.x -= squareSize;
 					agentwireframe.position.x -=squareSize;
-					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
-					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.x -=squareSize;
 						pickedBlockFrame.position.x -=squareSize;
-						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
-						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
 					}
 					robotLocation.x+=1;
 					robotLocation.y =heightTracker[destinationX][destinationY];
@@ -445,13 +447,13 @@
 					}
 					agent.position.x += squareSize;
 					agentwireframe.position.x += squareSize;
-					agent.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+grid.position.y;
-					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight/2+ grid.position.y;
+					agent.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+grid.position.y;
+					agentwireframe.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight/2+ grid.position.y;
 					if(pickedBlock!=null&&pickedBlockFrame!=null){
 						pickedBlock.position.x +=squareSize;
 						pickedBlockFrame.position.x +=squareSize;
-						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
-						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareSize+robotHeight+squareSize/2+grid.position.y;
+						pickedBlock.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
+						pickedBlockFrame.position.y =heightTracker[destinationX][destinationY]*squareHeight+robotHeight+squareHeight/2+grid.position.y;
 					}
 					robotLocation.x-=1;
 					robotLocation.y =heightTracker[destinationX][destinationY];
@@ -502,7 +504,7 @@
 					var blockWorldPosition = calculateWorldPosition(placePosition);// x is Y, and z is X
 
 
-					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareSize+0.5*squareSize,blockWorldPosition.z);
+					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareHeight+0.5*squareHeight,blockWorldPosition.z);
 					cubeTraker[placePosition.z][placePosition.x].push(tempCube[0]);
 					cubeFrameTraker[placePosition.z][placePosition.x].push(tempCube[1]);
 					scene.remove(pickedBlock);
