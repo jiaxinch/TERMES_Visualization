@@ -22,29 +22,15 @@
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			robotDirection=2,grid,squareSize=50, robotHeight=20,squareHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[];
-			var addRemove=[],stepDestination=[],stepInstruction=[];
+			var addRemove=[],stepDestination=[],stepInstruction=[],trackers=[];
 			robotLocation= new THREE.Vector3(3,0,6);
 			var text;
 			var to,from;
 			var offset=1000;
-			var frameSpeed=250;
+			var frameSpeed=50;
 			var TimeStepTrack=offset+frameSpeed;
 
-			/*function loadFileAsText(){
-				 //  var fileToLoad = document.getElementById("fileToLoad").files[0];
-				 //
-				 //  var fileReader = new FileReader();
-				 //  fileReader.onload = function(fileLoadedEvent){
-				 //      var textFromFileLoaded = fileLoadedEvent.target.result;
-				 //      document.getElementById("inputTextToSave").value = textFromFileLoaded;
-				 //  };
-				 //
-				 // fileReader.readAsText(fileToLoad, "UTF-8");
-				 // alert(fileReader);
-				 robotLocation= new THREE.Vector3(3,0,6);// x component controls the y component in the 2D grid, z component controls the x component in the 2D grid, both starting from 0
-				 init();
-				 animate();
-			 }*/
+
 
 			 document.getElementById("upload_button").addEventListener('click', function(evt) {
 				if (evt.target.tagName.toLowerCase() == 'button') {
@@ -76,6 +62,8 @@
 					 //console.log(text);
 					 parse();
 					 init();
+					// renderBunchTrackers(stepInstruction[0],addRemove[0]);
+					 //removeTrackers();
 					 animate();
 					}
 				};
@@ -101,10 +89,10 @@
 				function parse(){
 					var lines=text.split("\n");
 					var dimenstion=lines[0].split(" ");
-					gridSize=dimenstion[0];
+					gridSize=parseInt(dimenstion[0]);
 					//console.log(gridSize);
-					if(dimenstion[1]>dimenstion[0]){
-						gridSize=dimenstion[1];
+					if(parseInt(dimenstion[1])>parseInt(dimenstion[0])){
+						gridSize=parseInt(dimenstion[1]);
 					}
 					for(var i=1;i<lines.length;i++){
 						var singleLine=lines[i].split(" ");
@@ -184,6 +172,10 @@
 				for(var i=0;i<stepInstruction.length;i++){
 					var steps=stepInstruction[i];
 					var type=addRemove[i];
+
+					setTimeout(renderBunchTrackers,TimeStepTrack,steps,type);
+					TimeStepTrack+=frameSpeed;
+
 					if(type=='a'){
 						//pickACube();
 						//render();
@@ -199,6 +191,7 @@
 					}
 					else{
 						setTimeout(putBlockUp,TimeStepTrack,putLoc);
+						//setTimeout(removeLastTracker,TimeStepTrack);
 					}
 					TimeStepTrack+=frameSpeed;
 					for(var j=steps.length-2;j>0;j--){
@@ -206,10 +199,12 @@
 					}
 					if(type=='r'){
 						setTimeout(removePickedBlock,TimeStepTrack);
+						//setTimeout(removeLastTracker,TimeStepTrack);
 						TimeStepTrack+=frameSpeed;
 					}
 
-
+					setTimeout(removeTrackers,TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 
 
 				}
@@ -281,14 +276,14 @@
 
 			function renderACube(xPos,yPos,zPos){
 				var geometry = new THREE.BoxGeometry(squareSize,squareHeight,squareSize);
-				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+				var material = new THREE.MeshBasicMaterial( {color: 0xA52A2A} );
 				var cube = new THREE.Mesh( geometry, material );
 				cube.position.x=xPos;
 				cube.position.y=yPos;
 				cube.position.z=zPos;
 
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
+				var mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
 				var wireframe = new THREE.LineSegments( geo, mat );
 				wireframe.position.x=xPos;
 				wireframe.position.y=yPos;
@@ -297,6 +292,57 @@
 				scene.add(cube);
 				var cubeAndFrame = [cube, wireframe];
 				return cubeAndFrame;
+			}
+
+			function renderBunchTrackers(array,type){
+				for(var i=0;i<array.length;i++){
+					renderATrackerAt(array[i].x,array[i].y,type);
+
+				}
+			}
+
+			function renderATracker(xPos,yPos,zPos,type){
+				//var geometry = new THREE.PlaneGeometry( squareSize,squareSize );
+				var color1;
+				var material;
+				if(type=='a'){
+					material = new THREE.MeshBasicMaterial( {color:0x0000ff } );
+				}
+				else{
+					material = new THREE.MeshBasicMaterial( {color:0xff0000} );
+				}
+				var geometry = new THREE.BoxGeometry(squareSize,1,squareSize);
+				//var material = new THREE.MeshBasicMaterial( {color:0x0000ff } );
+				var cube = new THREE.Mesh( geometry, material );
+				cube.position.x=xPos;
+				cube.position.y=yPos;
+				cube.position.z=zPos;
+				scene.add(cube);
+				return cube;
+			}
+
+
+			function renderATrackerAt(xPos, yPos,type){
+				var location= new THREE.Vector3(yPos,0,xPos);
+				var worldPosition = calculateWorldPosition(location);
+				worldPosition.y+=heightTracker[xPos][yPos]*squareHeight;
+				var tracker=renderATracker(worldPosition.x,worldPosition.y,worldPosition.z,type);
+				trackers.push(tracker);
+				render();
+			}
+
+			function removeTrackers(){
+				for(var i=0;i<trackers.length;i++){
+					scene.remove(trackers[i]);
+				}
+				trackers=[];
+				render();
+			}
+
+			function removeLastTracker(){
+				scene.remove(trackers[trackers.length-1]);
+				trackers.pop();
+				render();
 			}
 
 			function renderRobot(){
@@ -334,13 +380,13 @@
 				var xPos = agent.position.x;
 				var zPos= agent.position.z;
 				var geometry = new THREE.BoxGeometry(squareSize,squareHeight,squareSize);
-				var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+				var material = new THREE.MeshBasicMaterial( {color: 0xA52A2A} );
 				pickedBlock = new THREE.Mesh( geometry, material );
 				pickedBlock.position.x=xPos;
 				pickedBlock.position.y=yPos;
 				pickedBlock.position.z=zPos;
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
+				var mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
 				pickedBlockFrame = new THREE.LineSegments( geo, mat );
 				pickedBlockFrame.position.x=xPos;
 				pickedBlockFrame.position.y=yPos;
@@ -482,7 +528,6 @@
 				pickedBlockFrame=null;
 			}
 			function putBlockDown(placePosition){
-				console.log(placePosition);
 				if(pickedBlock!=null){
 					var difX = placePosition.z-robotLocation.z;
 					var difY = placePosition.x- robotLocation.x;
@@ -540,6 +585,7 @@
 					heightTracker[placePosition.z][placePosition.x]-=1;
 					scene.remove(cubeToDelete);
 					scene.remove(frameToDelete);
+					removeLastTracker();
 					pickACube();
 					render();
 				}
