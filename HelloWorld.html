@@ -21,7 +21,7 @@
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			robotDirection=2,grid,squareSize=50, robotHeight=20,squareHeight=20;//up is 0, right is 1, down 2, left 3
-			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[];
+			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[],finalTracker=[];
 			var addRemove=[],stepDestination=[],stepInstruction=[],trackers=[];
 			robotLocation= new THREE.Vector3(3,0,6);
 			var text;
@@ -76,10 +76,12 @@
 			  function initTrackers(){
 				  for(var i=0;i<gridSize;++i){
 					  heightTracker[i]=[];
+						finalTracker[i]=[];
 					  cubeTraker[i]=[];
 					  cubeFrameTraker[i]=[];
 					  for(var j=0;j<gridSize;++j){
 						  heightTracker[i][j]=0;
+							finalTracker[i][j]=0;
 						  cubeTraker[i][j]=[];
 						  cubeFrameTraker[i][j]=[];
 					  }
@@ -162,7 +164,15 @@
 				  pickACube();*/
 				  camera.lookAt( scene.position );
 				  render();
+					initFinalStruc();
 					initInstructions();
+			}
+
+			function initFinalStruc(){
+				for(var i=0;i<stepInstruction.length;i++){
+					var loc=stepDestination[i];
+					finalTracker[loc.x][loc.y]++;
+				}
 			}
 
 			function initInstructions(){
