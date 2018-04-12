@@ -167,11 +167,15 @@
 
 			function initInstructions(){
 				robotLocation= new THREE.Vector3(parseInt(stepInstruction[0][0].y),0,parseInt(stepInstruction[0][0].x));
-				renderRobot();
+				//renderRobot();
 				//pickACube();
 				for(var i=0;i<stepInstruction.length;i++){
 					var steps=stepInstruction[i];
 					var type=addRemove[i];
+
+					robotLocation=new THREE.Vector3(parseInt(steps[0].y),0,parseInt(steps[0].x));
+					setTimeout(renderRobot,TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
 
 					setTimeout(renderBunchTrackers,TimeStepTrack,steps,type);
 					TimeStepTrack+=frameSpeed;
@@ -204,6 +208,9 @@
 					}
 
 					setTimeout(removeTrackers,TimeStepTrack);
+					TimeStepTrack+=frameSpeed;
+
+					setTimeout(removeRobot,TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 
 
@@ -371,8 +378,16 @@
 				agentwireframe.position.x=worldPosition.x;
 				agentwireframe.position.y=worldPosition.y;
 				agentwireframe.position.z=worldPosition.z;
-				scene.add( agentwireframe );
+				scene.add(agentwireframe );
 				scene.add(agent);
+			}
+
+			function removeRobot(){
+				scene.remove(agentwireframe);
+				scene.remove(agent);
+				agentwireframe=null;
+				agent=null;
+				render();
 			}
 
 			function pickACube(){// this function is to pick a cube from the boarder
