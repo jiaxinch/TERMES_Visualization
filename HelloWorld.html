@@ -59,11 +59,8 @@
 				reader.onloadend = function(evt) {
 					if (evt.target.readyState == FileReader.DONE) { // DONE == 2
 					 text=evt.target.result;
-					 //console.log(text);
 					 parse();
 					 init();
-					// renderBunchTrackers(stepInstruction[0],addRemove[0]);
-					 //removeTrackers();
 					 animate();
 					}
 				};
@@ -92,7 +89,6 @@
 					var lines=text.split("\n");
 					var dimenstion=lines[0].split(" ");
 					gridSize=parseInt(dimenstion[0]);
-					//console.log(gridSize);
 					if(parseInt(dimenstion[1])>parseInt(dimenstion[0])){
 						gridSize=parseInt(dimenstion[1]);
 					}
@@ -105,11 +101,7 @@
 							tempArray.push(transLocVec(singleLine[j]));
 						}
 						stepInstruction.push(tempArray);
-
 					}
-
-
-
 				}
 
 				function transLocVec(loc){
@@ -118,7 +110,6 @@
 				}
 
 			  function init(){
-				  //projector = new THREE.Projector();
 				  renderer = new THREE.WebGLRenderer();
 				  renderer.setPixelRatio( window.devicePixelRatio );
 				  renderer.setSize( window.innerWidth, window.innerHeight );
@@ -151,17 +142,6 @@
 				  scene.add( grid );
 				  initTrackers();
 
-				  // var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-				  // var geometrytemp = new THREE.Geometry();
-				  // geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -200, gridHelper.position.z) );
-				  // geometrytemp.vertices.push(new THREE.Vector3( gridHelper.position.x, -150, gridHelper.position.z) );
-				  // var line = new THREE.Line( geometrytemp, material );
-				  // scene.add(line);
-
-				  //renderACube(-150,-125,-150);
-				 // var agentPos = calculateTopLeftCorner(gridHelper.position,gridSize);
-				 /* renderRobot();
-				  pickACube();*/
 				  camera.lookAt( scene.position );
 				  render();
 					initFinalStruc();
@@ -177,22 +157,19 @@
 
 			function initInstructions(){
 				robotLocation= new THREE.Vector3(parseInt(stepInstruction[0][0].y),0,parseInt(stepInstruction[0][0].x));
-				//renderRobot();
-				//pickACube();
+
 				for(var i=0;i<stepInstruction.length;i++){
 					var steps=stepInstruction[i];
 					var type=addRemove[i];
 
 					robotLocation=new THREE.Vector3(parseInt(steps[0].y),0,parseInt(steps[0].x));
-					setTimeout(renderRobot,TimeStepTrack);
+					setTimeout(renderRobot,TimeStepTrack);// render the robot at the location the robot should be at
+					TimeStepTrack+=frameSpeed;// increase the time we set the steps
+
+					setTimeout(renderIndicators,TimeStepTrack,steps,type);//render the indicator that shows the path that the robot will take
 					TimeStepTrack+=frameSpeed;
 
-					setTimeout(renderBunchTrackers,TimeStepTrack,steps,type);
-					TimeStepTrack+=frameSpeed;
-
-					if(type=='a'){
-						//pickACube();
-						//render();
+					if(type=='a'){// if it is a adding instruction, when will pick up a cube at the sides of the grid.
 						setTimeout(pickACube,TimeStepTrack);
 						TimeStepTrack+=frameSpeed;
 					}
@@ -205,7 +182,6 @@
 					}
 					else{
 						setTimeout(putBlockUp,TimeStepTrack,putLoc);
-						//setTimeout(removeLastTracker,TimeStepTrack);
 					}
 					TimeStepTrack+=frameSpeed;
 					for(var j=steps.length-2;j>0;j--){
@@ -213,7 +189,6 @@
 					}
 					if(type=='r'){
 						setTimeout(removePickedBlock,TimeStepTrack);
-						//setTimeout(removeLastTracker,TimeStepTrack);
 						TimeStepTrack+=frameSpeed;
 					}
 
@@ -222,18 +197,8 @@
 
 					setTimeout(removeRobot,TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
-
-
 				}
-
 			}
-
-
-			/*function sleep(miliseconds) {
-   				var currentTime = new Date().getTime();
-   				while (currentTime + miliseconds >= new Date().getTime()) {
-   				}
-			}*/
 
 			function moveFromTo(from,to){
 				var difX=to.x-from.x;
@@ -311,15 +276,22 @@
 				return cubeAndFrame;
 			}
 
-			function renderBunchTrackers(array,type){
+			function renderIndicators(array,type){
 				for(var i=0;i<array.length;i++){
-					renderATrackerAt(array[i].x,array[i].y,type);
-
+					renderAIndicator(array[i].x,array[i].y,type);
 				}
 			}
 
-			function renderATracker(xPos,yPos,zPos,type){
-				//var geometry = new THREE.PlaneGeometry( squareSize,squareSize );
+			function renderAIndicator(xPos, yPos,type){
+				var location= new THREE.Vector3(yPos,0,xPos);
+				var worldPosition = calculateWorldPosition(location);
+				worldPosition.y+=heightTracker[xPos][yPos]*squareHeight;
+				var tracker=renderAIndicatorHelper(worldPosition.x,worldPosition.y,worldPosition.z,type);
+				trackers.push(tracker);
+				render();
+			}
+
+			function renderAIndicatorHelper(xPos,yPos,zPos,type){
 				var color1;
 				var material;
 				if(type=='a'){
@@ -336,16 +308,6 @@
 				cube.position.z=zPos;
 				scene.add(cube);
 				return cube;
-			}
-
-
-			function renderATrackerAt(xPos, yPos,type){
-				var location= new THREE.Vector3(yPos,0,xPos);
-				var worldPosition = calculateWorldPosition(location);
-				worldPosition.y+=heightTracker[xPos][yPos]*squareHeight;
-				var tracker=renderATracker(worldPosition.x,worldPosition.y,worldPosition.z,type);
-				trackers.push(tracker);
-				render();
 			}
 
 			function removeTrackers(){
