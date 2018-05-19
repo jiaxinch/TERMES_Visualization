@@ -16,4 +16,16 @@
 `initInstructions()` traverses all the instructions and `setTimeout` for each instruction. `setTimeout` schedules the functions with different numbers, which indicates the time that the function should be performed. It does not need anything and returns nothing. `framespeed` is a number we set to control the speed of instructions. *The larger the number is, the instructions operates slower.*
 
 
-`moveFromTo()` takes 
+`moveFromTo()` takes two `Vector3`, one is the *from* location and the other is the *other* location. The function moves the robot from the *from* location to the *to* location. And the function return nothing.
+
+`moveRight()`, `moveLeft()`,`moveUp()`, `moveDown()`calls `moveOneGridUp` and `moveOneGridRight` to move the grid.
+
+`calculateWorldPosition()` takes a *gridPosition* and transforms it into a worldPosition and returns a `Vector3` of the world position.
+
+`renderACube()` takes three world position numbers and render a cube in the position. And then return a `Vector2` with first element contains the cube instance and the second element wireframe instance.
+
+`renderIndicators()` renders path indicators in the array according to the type of the indicators. There are two types *a* and *r*. It takes an array of positions and type of indicators and returns nothing
+
+`renderAIndicator()` renders a path indicators according to the type of the indicators. It takes position of X and y and type, and returns nothing.
+
+`renderAIndicatorHelper()` takes x, y and z position and type of indicators. This function helps render the path indicators. The function returns the indicator so that we can delete the path indicator later.

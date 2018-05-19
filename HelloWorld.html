@@ -22,7 +22,7 @@
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
 			robotDirection=2,grid,squareSize=50, robotHeight=20,squareHeight=20;//up is 0, right is 1, down 2, left 3
 			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[],finalTracker=[];
-			var addRemove=[],stepDestination=[],stepInstruction=[],trackers=[];
+			var addRemove=[],stepDestination=[],stepInstruction=[],Indicators=[];
 			robotLocation= new THREE.Vector3(3,0,6);
 			var text;
 			var to,from;
@@ -192,7 +192,7 @@
 						TimeStepTrack+=frameSpeed;
 					}
 
-					setTimeout(removeTrackers,TimeStepTrack);
+					setTimeout(removeIndicators,TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 
 					setTimeout(removeRobot,TimeStepTrack);
@@ -204,23 +204,18 @@
 				var difX=to.x-from.x;
 				var difY=to.y-from.y;
 				if(difX==1&&difY==0){
-					//moveOneGridRight(1);
 					setTimeout(moveRight, TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
-
 				}
 				else if(difX==-1&&difY==0){
-					//moveOneGridRight(-1);
 					setTimeout(moveLeft, TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 				}
 				else if(difX==0&&difY==1){
-					//moveOneGridUp(1);
 					setTimeout(moveUp, TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 				}
 				else if(difX==0&&difY==-1){
-					//moveOneGridUp(-1);
 					setTimeout(moveDown, TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 				}
@@ -286,8 +281,8 @@
 				var location= new THREE.Vector3(yPos,0,xPos);
 				var worldPosition = calculateWorldPosition(location);
 				worldPosition.y+=heightTracker[xPos][yPos]*squareHeight;
-				var tracker=renderAIndicatorHelper(worldPosition.x,worldPosition.y,worldPosition.z,type);
-				trackers.push(tracker);
+				var indicator=renderAIndicatorHelper(worldPosition.x,worldPosition.y,worldPosition.z,type);
+				Indicators.push(indicator);
 				render();
 			}
 
@@ -301,26 +296,25 @@
 					material = new THREE.MeshBasicMaterial( {color:0xff0000} );
 				}
 				var geometry = new THREE.BoxGeometry(squareSize,1,squareSize);
-				//var material = new THREE.MeshBasicMaterial( {color:0x0000ff } );
-				var cube = new THREE.Mesh( geometry, material );
-				cube.position.x=xPos;
-				cube.position.y=yPos;
-				cube.position.z=zPos;
-				scene.add(cube);
-				return cube;
+				var indicator = new THREE.Mesh( geometry, material );
+				indicator.position.x=xPos;
+				indicator.position.y=yPos;
+				indicator.position.z=zPos;
+				scene.add(indicator);
+				return indicator;
 			}
 
-			function removeTrackers(){
-				for(var i=0;i<trackers.length;i++){
-					scene.remove(trackers[i]);
+			function removeIndicators(){
+				for(var i=0;i<Indicators.length;i++){
+					scene.remove(Indicators[i]);
 				}
-				trackers=[];
+				Indicators=[];
 				render();
 			}
 
-			function removeLastTracker(){
-				scene.remove(trackers[trackers.length-1]);
-				trackers.pop();
+			function removeLastIndicator(){
+				scene.remove(Indicators[Indicators.length-1]);
+				Indicators.pop();
 				render();
 			}
 
@@ -335,10 +329,6 @@
 					faceMaterials.push(new THREE.MeshBasicMaterial( {color: 0x000000} ));
 				}
 				agent  = new THREE.Mesh( geometry, faceMaterials );
-
-				//var texture = new THREE.TextureLoader().load( 'truck.bmp' );
-				//var material = new THREE.MeshBasicMaterial( { map: texture } );
-				//agent = new THREE.Mesh( geometry, material );
 				agent.position.x=worldPosition.x;
 				agent.position.y=worldPosition.y;
 				agent.position.z=worldPosition.z;
@@ -572,7 +562,7 @@
 					heightTracker[placePosition.z][placePosition.x]-=1;
 					scene.remove(cubeToDelete);
 					scene.remove(frameToDelete);
-					removeLastTracker();
+					removeLastIndicator();
 					pickACube();
 					render();
 				}
