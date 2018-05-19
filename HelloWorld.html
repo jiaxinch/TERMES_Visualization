@@ -17,10 +17,12 @@
 		<script type="text/javascript">
 			var container, interval,controls,
 			camera, scene, renderer,
+			smallScene, smallCamera, smallRenderer,smallControls,
 			projector,agent,agentwireframe,
 			mouse3D, isMouseDown = false, onMouseDownPosition,
 			gridSize=16, pickedBlock=null,pickedBlockFrame=null,
-			robotDirection=2,grid,squareSize=50, robotHeight=20,squareHeight=20;//up is 0, right is 1, down 2, left 3
+			robotDirection=2,grid,smallGrid,squareSize=50, robotHeight=20,squareHeight=20,smallSquareHeight=20*0.5,smallSquareSize=50*0.5;//up is 0, right is 1, down 2, left 3
+			var smallWindowLeft=0.5,smallWindowTop=0.0,smallWindowHeight=0.5,smallWindowWidth =0.5;
 			var robotLocation, heightTracker=[],cubeTraker=[],cubeFrameTraker=[],finalTracker=[];
 			var addRemove=[],stepDestination=[],stepInstruction=[],Indicators=[];
 			robotLocation= new THREE.Vector3(3,0,6);
@@ -115,6 +117,27 @@
 				  renderer.setSize( window.innerWidth, window.innerHeight );
 				  document.body.appendChild( renderer.domElement );
 
+
+					smallRenderer= new THREE.WebGLRenderer();
+					var left = Math.floor(window.innerWidth*smallWindowLeft);
+					var top = Math.floor(window.innerHeight*smallWindowTop);
+					var width = Math.floor(window.innerWidth*smallWindowWidth);
+					var height = Math.floor(window.innerHeight*smallWindowHeight);
+					smallRenderer.setSize(width,height);
+					smallRenderer.setViewport(0, 0, width, height);
+					smallRenderer.setScissor(0, 0, width, height);
+					//smallRenderer.setScissorTest(true);
+
+					document.body.appendChild(smallRenderer.domElement);
+
+					smallCamera= new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+					smallCamera.position.x = -100;
+					smallCamera.position.z = 400;
+
+					smallScene = new THREE.Scene();
+					smallScene.background = new THREE.Color( 0xffffff);
+
+
 				  camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
 				  camera.position.x = 400;
 				  camera.position.z = 200;
@@ -132,6 +155,20 @@
 				  document.addEventListener( 'keydown', onDocumentKeyDown, false );
 
 
+									smallControls = new THREE.TrackballControls( smallCamera );
+									 smallControls.rotateSpeed = 1.0;
+									 smallControls.zoomSpeed = 1.2;
+									 smallControls.panSpeed = 0.8;
+									 smallControls.noZoom = false;
+									 smallControls.noPan = false;
+									 smallControls.staticMoving = true;
+									 smallControls.dynamicDampingFactor = 0.3;
+									 smallControls.keys = [ 65, 83, 68 ];
+									 smallControls.addEventListener( 'change', render );
+									 smallControls.addEventListener( 'keydown', onDocumentKeyDown, false );
+
+
+
 				  scene = new THREE.Scene();
 				  scene.background = new THREE.Color( 0xffffff );
 				  onMouseDownPosition = new THREE.Vector2();
@@ -140,18 +177,39 @@
 				  grid.position.y = - 150;
 				  grid.position.x = - 150;
 				  scene.add( grid );
-				  initTrackers();
+				  //initTrackers();
+
+					smallGrid = new THREE.GridHelper( gridSize*squareSize*0.5, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+					smallGrid.position.y =-150;
+					smallGrid.position.x =-150;
+					smallScene.add( smallGrid );
+
+
+
+					initTrackers();
+					initFinalStruc();
+					renderSmallCubes();
+
 
 				  camera.lookAt( scene.position );
 				  render();
-					initFinalStruc();
+					//initFinalStruc();
+
+
 					initInstructions();
 			}
 
 			function initFinalStruc(){
 				for(var i=0;i<stepInstruction.length;i++){
-					var loc=stepDestination[i];
-					finalTracker[loc.x][loc.y]++;
+					if(addRemove[i]=='a'){
+						var loc=stepDestination[i];
+						finalTracker[loc.x][loc.y]++;
+					}
+					else{
+						var loc=stepDestination[i];
+						finalTracker[loc.x][loc.y]--;
+					}
+
 				}
 			}
 
@@ -200,6 +258,22 @@
 				}
 			}
 
+			function renderSmallCubes(){
+				//console.log(finalTracker);
+				for(var i=0;i<gridSize;i++){
+					for(var j=0;j<gridSize;j++){
+						if(finalTracker[i][j]!=0){
+							for(var k=0;k<finalTracker[i][j];k++){
+								var loc=calculateSmallPosition(new THREE.Vector3(j,0,i));
+								renderASmallCube(loc.x,loc.y+smallSquareHeight/2+smallSquareHeight*k,loc.z);
+							}
+						}
+					}
+				}
+			}
+
+
+
 			function moveFromTo(from,to){
 				var difX=to.x-from.x;
 				var difY=to.y-from.y;
@@ -238,6 +312,18 @@
 				moveOneGridUp(-1);
 			}
 
+			function calculateSmallPosition(location){
+				var size = gridSize/2;
+				size -=0.5;
+				var position =smallGrid.position;
+				var posX= position.x +size*smallSquareSize;// plus to let the cube move toward us, minus to push it away
+				var posZ= position.z +size*smallSquareSize;
+				var posY = position.y;
+				posX -=location.x*smallSquareSize;
+				posZ -= location.z*smallSquareSize;
+				return new THREE.Vector3(posX,posY,posZ);
+			}
+
 
 			function calculateWorldPosition(location){
 				var size = gridSize/2;
@@ -270,6 +356,28 @@
 				var cubeAndFrame = [cube, wireframe];
 				return cubeAndFrame;
 			}
+
+
+			function renderASmallCube(xPos,yPos,zPos){
+				var geometry = new THREE.BoxGeometry(smallSquareSize,smallSquareHeight,smallSquareSize);
+				var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
+				var cube = new THREE.Mesh( geometry, material );
+				cube.position.x=xPos;
+				cube.position.y=yPos;
+				cube.position.z=zPos;
+
+				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
+				var mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
+				var wireframe = new THREE.LineSegments( geo, mat );
+				wireframe.position.x=xPos;
+				wireframe.position.y=yPos;
+				wireframe.position.z=zPos;
+				smallScene.add( wireframe );
+				smallScene.add(cube);
+				var cubeAndFrame = [cube, wireframe];
+				return cubeAndFrame;
+			}
+
 
 			function renderIndicators(array,type){
 				for(var i=0;i<array.length;i++){
@@ -378,11 +486,17 @@
 			function render() {
 				//requestAnimationFrame(render);
 				renderer.render( scene, camera );
+				smallRenderer.render(smallScene,smallCamera);
+			}
+
+			function smallWindowRender(){
+				smallRenderer.render(smallScene,smallCamera);
 			}
 
 			function animate() {
 				requestAnimationFrame( animate );
 				controls.update();
+					smallControls.update();
 			}
 			function moveOneGridRight(direction){
 				if(direction >0){
@@ -569,7 +683,7 @@
 			}
 
 			function onDocumentKeyDown( event ) {
-				switch( event.keyCode ) {
+			/*	switch( event.keyCode ) {
 					case 39: moveOneGridRight(1); //Right Arrow
 					break;
 					case 37: moveOneGridRight( -1 );//Left Arrow
@@ -582,7 +696,7 @@
 					break;
 					case 88:putBlockUp(new THREE.Vector3(1,0,1));//x
 					break;
-				}
+				}*/
 			}
 
 		</script>
