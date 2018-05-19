@@ -29,7 +29,7 @@
 			var text;
 			var to,from;
 			var offset=1000;
-			var frameSpeed=50;
+			var frameSpeed=100;
 			var TimeStepTrack=offset+frameSpeed;
 
 
@@ -448,6 +448,9 @@
 				agentwireframe.position.x=worldPosition.x;
 				agentwireframe.position.y=worldPosition.y;
 				agentwireframe.position.z=worldPosition.z;
+
+				robotDirection=2;
+
 				scene.add(agentwireframe );
 				scene.add(agent);
 			}
