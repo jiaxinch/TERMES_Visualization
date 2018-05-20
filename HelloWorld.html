@@ -8,10 +8,10 @@
 	</head>
 	<body>
 		<tr>
-    <td>Select a File to Load:</td>
-    <td><input type="file" id="fileToLoad"></td>
-    <td><button id="upload_button">Load Selected File</button><td>
-</tr>
+			<td>Select a File to Load:</td>
+			<td><input type="file" id="fileToLoad"></td>
+			<td><button id="upload_button">Load Selected File</button><td>
+		</tr>
 		<script src="js/three.js"></script>
 		<script src="js/TrackballControls.js"></script>
 		<script type="text/javascript">
@@ -32,9 +32,7 @@
 			var frameSpeed=100;
 			var TimeStepTrack=offset+frameSpeed;
 
-
-
-			 document.getElementById("upload_button").addEventListener('click', function(evt) {
+			document.getElementById("upload_button").addEventListener('click', function(evt) {
 				if (evt.target.tagName.toLowerCase() == 'button') {
 					var startByte = evt.target.getAttribute('data-startbyte');
 					var endByte = evt.target.getAttribute('data-endbyte');
@@ -42,161 +40,138 @@
 				}
 			}, false);
 
-
-		 function readBlob(opt_startByte, opt_stopByte) {
-
+			function readBlob(opt_startByte, opt_stopByte) {
 				var files = document.getElementById('fileToLoad').files;
 				if (!files.length) {
 					alert('Please select a file!');
 					return;
 				}
-
 				var file = files[0];
 				var start = parseInt(opt_startByte) || 0;
 				var stop = parseInt(opt_stopByte) || file.size - 1;
-
 				var reader = new FileReader();
-
 				// If we use onloadend, we need to check the readyState.
 				reader.onloadend = function(evt) {
 					if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-					 text=evt.target.result;
-					 parse();
-					 init();
-					 animate();
+						text=evt.target.result;
+						parse();
+						init();
+						animate();
 					}
 				};
-
 				var blob = file.slice(start, stop + 1);
 				reader.readAsBinaryString(blob);
 			}
 
-
-			  function initTrackers(){
-				  for(var i=0;i<gridSize;++i){
-					  heightTracker[i]=[];
-					  finalTracker[i]=[];
-					  cubeTraker[i]=[];
-					  cubeFrameTraker[i]=[];
-					  for(var j=0;j<gridSize;++j){
-						  heightTracker[i][j]=0;
-						  finalTracker[i][j]=0;
-						  cubeTraker[i][j]=[];
-						  cubeFrameTraker[i][j]=[];
-					  }
-				  }
-			  }
-
-				function parse(){
-					var lines=text.split("\n");
-					var dimenstion=lines[0].split(" ");
-					gridSize=parseInt(dimenstion[0]);
-					if(parseInt(dimenstion[1])>parseInt(dimenstion[0])){
-						gridSize=parseInt(dimenstion[1]);
-					}
-					for(var i=1;i<lines.length;i++){
-						var singleLine=lines[i].split(" ");
-						addRemove.push(singleLine[0]);
-						stepDestination.push(transLocVec(singleLine[1]));
-						var tempArray=[]
-						for(var j=2;j<singleLine.length;j++){
-							tempArray.push(transLocVec(singleLine[j]));
-						}
-						stepInstruction.push(tempArray);
+			function initTrackers(){
+				for(var i=0;i<gridSize;++i){
+					heightTracker[i]=[];
+					finalTracker[i]=[];
+					cubeTraker[i]=[];
+					cubeFrameTraker[i]=[];
+					for(var j=0;j<gridSize;++j){
+						heightTracker[i][j]=0;
+						finalTracker[i][j]=0;
+						cubeTraker[i][j]=[];
+						cubeFrameTraker[i][j]=[];
 					}
 				}
+			}
 
-				function transLocVec(loc){
-					var locArray=loc.split(",");
-					return new THREE.Vector2(parseInt(locArray[0]),parseInt(locArray[1]));
+			function parse(){
+				var lines=text.split("\n");
+				var dimenstion=lines[0].split(" ");
+				gridSize=parseInt(dimenstion[0]);
+				if(parseInt(dimenstion[1])>parseInt(dimenstion[0])){
+					gridSize=parseInt(dimenstion[1]);
 				}
+				for(var i=1;i<lines.length;i++){
+					var singleLine=lines[i].split(" ");
+					addRemove.push(singleLine[0]);
+					stepDestination.push(transLocVec(singleLine[1]));
+					var tempArray=[];
+					for(var j=2;j<singleLine.length;j++){
+						tempArray.push(transLocVec(singleLine[j]));
+					}
+					stepInstruction.push(tempArray);
+				}
+			}
 
-			  function init(){
-				  renderer = new THREE.WebGLRenderer();
-				  renderer.setPixelRatio( window.devicePixelRatio );
-				  renderer.setSize( window.innerWidth, window.innerHeight );
-				  document.body.appendChild( renderer.domElement );
+			function transLocVec(loc){
+				var locArray=loc.split(",");
+				return new THREE.Vector2(parseInt(locArray[0]),parseInt(locArray[1]));
+			}
 
+			function init(){
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+				smallRenderer= new THREE.WebGLRenderer();
+				var left = Math.floor(window.innerWidth*smallWindowLeft);
+				var top = Math.floor(window.innerHeight*smallWindowTop);
+				var width = Math.floor(window.innerWidth*smallWindowWidth);
+				var height = Math.floor(window.innerHeight*smallWindowHeight);
+				smallRenderer.setSize(width,height);
+				smallRenderer.setViewport(0, 0, width, height);
+				smallRenderer.setScissor(0, 0, width, height);
+				document.body.appendChild(smallRenderer.domElement);
 
-					smallRenderer= new THREE.WebGLRenderer();
-					var left = Math.floor(window.innerWidth*smallWindowLeft);
-					var top = Math.floor(window.innerHeight*smallWindowTop);
-					var width = Math.floor(window.innerWidth*smallWindowWidth);
-					var height = Math.floor(window.innerHeight*smallWindowHeight);
-					smallRenderer.setSize(width,height);
-					smallRenderer.setViewport(0, 0, width, height);
-					smallRenderer.setScissor(0, 0, width, height);
-					//smallRenderer.setScissorTest(true);
-
-					document.body.appendChild(smallRenderer.domElement);
-
-					smallCamera= new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-					smallCamera.position.x = -100;
-					smallCamera.position.z = 400;
-
-					smallScene = new THREE.Scene();
-					smallScene.background = new THREE.Color( 0xffffff);
-
-
-				  camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-				  camera.position.x = 400;
-				  camera.position.z = 200;
-
-				  controls = new THREE.TrackballControls( camera );
-				  controls.rotateSpeed = 1.0;
-				  controls.zoomSpeed = 1.2;
-				  controls.panSpeed = 0.8;
-				  controls.noZoom = false;
-				  controls.noPan = false;
-				  controls.staticMoving = true;
-				  controls.dynamicDampingFactor = 0.3;
-				  controls.keys = [ 65, 83, 68 ];
-				  controls.addEventListener( 'change', render );
-				  document.addEventListener( 'keydown', onDocumentKeyDown, false );
+				smallCamera= new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				smallCamera.position.x = -100;
+				smallCamera.position.z = 400;
+				smallScene = new THREE.Scene();
+				smallScene.background = new THREE.Color( 0xffffff);
 
 
-									smallControls = new THREE.TrackballControls( smallCamera );
-									 smallControls.rotateSpeed = 1.0;
-									 smallControls.zoomSpeed = 1.2;
-									 smallControls.panSpeed = 0.8;
-									 smallControls.noZoom = false;
-									 smallControls.noPan = false;
-									 smallControls.staticMoving = true;
-									 smallControls.dynamicDampingFactor = 0.3;
-									 smallControls.keys = [ 65, 83, 68 ];
-									 smallControls.addEventListener( 'change', render );
-									 smallControls.addEventListener( 'keydown', onDocumentKeyDown, false );
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.x = 400;
+				camera.position.z = 200;
 
+				controls = new THREE.TrackballControls( camera );
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+				controls.noZoom = false;
+				controls.noPan = false;
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+				controls.keys = [ 65, 83, 68 ];
+				controls.addEventListener( 'change', render );
+				document.addEventListener( 'keydown', onDocumentKeyDown, false );
 
+				smallControls = new THREE.TrackballControls( smallCamera );
+				smallControls.rotateSpeed = 1.0;
+				smallControls.zoomSpeed = 1.2;
+				smallControls.panSpeed = 0.8;
+				smallControls.noZoom = false;
+				smallControls.noPan = false;
+				smallControls.staticMoving = true;
+				smallControls.dynamicDampingFactor = 0.3;
+				smallControls.keys = [ 65, 83, 68 ];
+				smallControls.addEventListener( 'change', render );
+				smallControls.addEventListener( 'keydown', onDocumentKeyDown, false );
 
-				  scene = new THREE.Scene();
-				  scene.background = new THREE.Color( 0xffffff );
-				  onMouseDownPosition = new THREE.Vector2();
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xffffff );
+				onMouseDownPosition = new THREE.Vector2();
 
-				  grid = new THREE.GridHelper( gridSize*squareSize, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
-				  grid.position.y = - 150;
-				  grid.position.x = - 150;
-				  scene.add( grid );
-				  //initTrackers();
+				grid = new THREE.GridHelper( gridSize*squareSize, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				grid.position.y = - 150;
+				grid.position.x = - 150;
+				scene.add( grid );
 
-					smallGrid = new THREE.GridHelper( gridSize*squareSize*0.5, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
-					smallGrid.position.y =-150;
-					smallGrid.position.x =-150;
-					smallScene.add( smallGrid );
+				smallGrid = new THREE.GridHelper( gridSize*squareSize*0.5, gridSize, 0x000000, 0x000000);// first number is the total length of the square and the second one is the number of grids
+				smallGrid.position.y =-150;
+				smallGrid.position.x =-150;
+				smallScene.add( smallGrid );
 
-
-
-					initTrackers();
-					initFinalStruc();
-					renderSmallCubes();
-
-
-				  camera.lookAt( scene.position );
-				  render();
-					//initFinalStruc();
-
-
-					initInstructions();
+				initTrackers();
+				initFinalStruc();
+				renderSmallCubes();
+				camera.lookAt( scene.position );
+				render();
+				initInstructions();
 			}
 
 			function initFinalStruc(){
@@ -209,17 +184,14 @@
 						var loc=stepDestination[i];
 						finalTracker[loc.x][loc.y]--;
 					}
-
 				}
 			}
 
 			function initInstructions(){
 				robotLocation= new THREE.Vector3(parseInt(stepInstruction[0][0].y),0,parseInt(stepInstruction[0][0].x));
-
 				for(var i=0;i<stepInstruction.length;i++){
 					var steps=stepInstruction[i];
 					var type=addRemove[i];
-
 					robotLocation=new THREE.Vector3(parseInt(steps[0].y),0,parseInt(steps[0].x));
 					setTimeout(renderRobot,TimeStepTrack);// render the robot at the location the robot should be at
 					TimeStepTrack+=frameSpeed;// increase the time we set the steps
@@ -249,7 +221,6 @@
 						setTimeout(removePickedBlock,TimeStepTrack);
 						TimeStepTrack+=frameSpeed;
 					}
-
 					setTimeout(removeIndicators,TimeStepTrack);
 					TimeStepTrack+=frameSpeed;
 
@@ -259,7 +230,6 @@
 			}
 
 			function renderSmallCubes(){
-				//console.log(finalTracker);
 				for(var i=0;i<gridSize;i++){
 					for(var j=0;j<gridSize;j++){
 						if(finalTracker[i][j]!=0){
@@ -324,7 +294,6 @@
 				return new THREE.Vector3(posX,posY,posZ);
 			}
 
-
 			function calculateWorldPosition(location){
 				var size = gridSize/2;
 				size -=0.5;
@@ -344,7 +313,6 @@
 				cube.position.x=xPos;
 				cube.position.y=yPos;
 				cube.position.z=zPos;
-
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
 				var mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
 				var wireframe = new THREE.LineSegments( geo, mat );
@@ -357,7 +325,6 @@
 				return cubeAndFrame;
 			}
 
-
 			function renderASmallCube(xPos,yPos,zPos){
 				var geometry = new THREE.BoxGeometry(smallSquareSize,smallSquareHeight,smallSquareSize);
 				var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
@@ -365,7 +332,6 @@
 				cube.position.x=xPos;
 				cube.position.y=yPos;
 				cube.position.z=zPos;
-
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
 				var mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
 				var wireframe = new THREE.LineSegments( geo, mat );
@@ -377,7 +343,6 @@
 				var cubeAndFrame = [cube, wireframe];
 				return cubeAndFrame;
 			}
-
 
 			function renderIndicators(array,type){
 				for(var i=0;i<array.length;i++){
@@ -430,8 +395,6 @@
 				var worldPosition = calculateWorldPosition(robotLocation);
 				worldPosition.y += robotHeight/2;
 				var geometry = new THREE.BoxGeometry(squareSize,robotHeight,squareSize);
-				//var material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
-
 				var faceMaterials = [ new THREE.MeshBasicMaterial( {color: 0x00ffff} )];
 				for(var i=1;i<geometry.faces.length;++i){
 					faceMaterials.push(new THREE.MeshBasicMaterial( {color: 0x000000} ));
@@ -440,17 +403,13 @@
 				agent.position.x=worldPosition.x;
 				agent.position.y=worldPosition.y;
 				agent.position.z=worldPosition.z;
-
-
 				var geo = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
 				var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } );
 				agentwireframe = new THREE.LineSegments( geo, mat );
 				agentwireframe.position.x=worldPosition.x;
 				agentwireframe.position.y=worldPosition.y;
 				agentwireframe.position.z=worldPosition.z;
-
 				robotDirection=2;
-
 				scene.add(agentwireframe );
 				scene.add(agent);
 			}
@@ -484,10 +443,7 @@
 				render();
 			}
 
-
-
 			function render() {
-				//requestAnimationFrame(render);
 				renderer.render( scene, camera );
 				smallRenderer.render(smallScene,smallCamera);
 			}
@@ -499,8 +455,9 @@
 			function animate() {
 				requestAnimationFrame( animate );
 				controls.update();
-					smallControls.update();
+				smallControls.update();
 			}
+
 			function moveOneGridRight(direction){
 				if(direction >0){
 					if(robotDirection!=1){
@@ -524,7 +481,6 @@
 					}
 					robotLocation.z +=1;
 					robotLocation.y =heightTracker[destinationX][destinationY];
-
 				}
 				else{
 					if(robotDirection!=3){
@@ -551,6 +507,7 @@
 				}
 				render();
 			}
+
 			function moveOneGridUp(direction){
 				if(direction >0){
 					if(robotDirection!=0){
@@ -600,9 +557,9 @@
 				}
 				render();
 			}
+
 			function rotate(from, to){
 				if(from == to){
-
 				}
 				else{
 					var temp = to-from;
@@ -612,8 +569,8 @@
 					robotDirection=to;
 					render();
 				}
-
 			}
+			
 			function removePickedBlock(){
 				scene.remove(pickedBlock);
 				scene.remove(pickedBlockFrame);
@@ -621,6 +578,7 @@
 				pickedBlock=null;
 				pickedBlockFrame=null;
 			}
+
 			function putBlockDown(placePosition){
 				if(pickedBlock!=null){
 					var difX = placePosition.z-robotLocation.z;
@@ -641,8 +599,6 @@
 						return;
 					}
 					var blockWorldPosition = calculateWorldPosition(placePosition);// x is Y, and z is X
-
-
 					var tempCube = renderACube(blockWorldPosition.x,grid.position.y+heightTracker[placePosition.z][placePosition.x]*squareHeight+0.5*squareHeight,blockWorldPosition.z);
 					cubeTraker[placePosition.z][placePosition.x].push(tempCube[0]);
 					cubeFrameTraker[placePosition.z][placePosition.x].push(tempCube[1]);
@@ -685,22 +641,6 @@
 				}
 			}
 
-			function onDocumentKeyDown( event ) {
-			/*	switch( event.keyCode ) {
-					case 39: moveOneGridRight(1); //Right Arrow
-					break;
-					case 37: moveOneGridRight( -1 );//Left Arrow
-					break;
-					case 38:moveOneGridUp(1);//up Arrow
-					break;
-					case 40:moveOneGridUp(-1);//down Arrow
-					break;
-					case 90:putBlockDown(new THREE.Vector3(1,0,1));//z
-					break;
-					case 88:putBlockUp(new THREE.Vector3(1,0,1));//x
-					break;
-				}*/
-			}
 
 		</script>
 	</body>
