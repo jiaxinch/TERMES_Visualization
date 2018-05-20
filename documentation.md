@@ -1,4 +1,4 @@
-## this documentation is for the visualization of TERMES project. This is a *single agent* robot construction project. 
+## this documentation is for the visualization of TERMES project. This is a *single agent* robot construction project.
 ##### Glossary and other
 1. This visualization project is built on *THREE.js*, which included in the directory *js*.
 2. the robot has a front face, which is painted blue in this version. The robot can only moves in the direction of its face and can only pick a block that is in front of its face. Rotation is implemented in the move function.
@@ -66,4 +66,6 @@
 
 `removePickedBlock()` removes the block on the robots' head.
 
-`putBlockDown()` takes a **grid position** that the block should be placed.
+`putBlockDown()` takes a **grid position** that the block should be placed. it first check whether the parameter position is distance 1 away and rotates the robot to the direction so it can put the block down. Then render the block at the desired location and remove the block on robots head.
+
+`putBlockUp()` is the function that enable the robot remove a block from the building and put the block on its head. It is basically the same thing as the `putBlockDown()`. 
