@@ -138,7 +138,7 @@
 				controls.dynamicDampingFactor = 0.3;
 				controls.keys = [ 65, 83, 68 ];
 				controls.addEventListener( 'change', render );
-				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+				//document.addEventListener( 'keydown', onDocumentKeyDown, false );
 
 				smallControls = new THREE.TrackballControls( smallCamera );
 				smallControls.rotateSpeed = 1.0;
@@ -150,7 +150,7 @@
 				smallControls.dynamicDampingFactor = 0.3;
 				smallControls.keys = [ 65, 83, 68 ];
 				smallControls.addEventListener( 'change', render );
-				smallControls.addEventListener( 'keydown', onDocumentKeyDown, false );
+				//smallControls.addEventListener( 'keydown', onDocumentKeyDown, false );
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0xffffff );
@@ -570,7 +570,7 @@
 					render();
 				}
 			}
-			
+
 			function removePickedBlock(){
 				scene.remove(pickedBlock);
 				scene.remove(pickedBlockFrame);
